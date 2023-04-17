@@ -211,39 +211,76 @@ class QrPainter extends CustomPainter {
       emptyPixelPaint = _paintCache.firstPaint(QrCodeElement.codePixelEmpty);
       emptyPixelPaint!.color = emptyColor!;
     }
-    for (var x = 0; x < _qr!.moduleCount; x++) {
+    if (dataModuleStyle.dataModuleShape == QrDataModuleShape.roundedRect) {
       for (var y = 0; y < _qr!.moduleCount; y++) {
-        // draw the finder patterns independently
-        if (_isFinderPatternPosition(x, y)) continue;
-        final paint = _qrImage.isDark(y, x) ? pixelPaint : emptyPixelPaint;
-        if (paint == null) continue;
-        // paint a pixel
-        left = paintMetrics.inset + (x * (paintMetrics.pixelSize + gap));
-        top = paintMetrics.inset + (y * (paintMetrics.pixelSize + gap));
-        var pixelHTweak = 0.0;
-        var pixelVTweak = 0.0;
-        if (gapless && _hasAdjacentHorizontalPixel(x, y, _qr!.moduleCount)) {
-          pixelHTweak = 0.5;
-        }
-        if (gapless && _hasAdjacentVerticalPixel(x, y, _qr!.moduleCount)) {
-          pixelVTweak = 0.5;
-        }
-        final squareRect = Rect.fromLTWH(
-          left,
-          top,
-          paintMetrics.pixelSize + pixelHTweak,
-          paintMetrics.pixelSize + pixelVTweak,
-        );
-        if (dataModuleStyle.dataModuleShape == QrDataModuleShape.square) {
-          canvas.drawRect(squareRect, paint);
-        } else {
+        for (var x = 0; x < _qr!.moduleCount; x++) {
+          // draw the finder patterns independently
+          if (_isFinderPatternPosition(x, y)) continue;
+          final paint = _qrImage.isDark(y, x) ? pixelPaint : emptyPixelPaint;
+          if (paint == null) continue;
+          // paint a pixel
+          left = paintMetrics.inset + (x * (paintMetrics.pixelSize + gap));
+          top = paintMetrics.inset + (y * (paintMetrics.pixelSize + gap));
+          var pixelHTweak = 0.0;
+          var pixelVTweak = 0.0;
+          if (gapless && _hasAdjacentHorizontalPixel(x, y, _qr!.moduleCount)) {
+            pixelHTweak = 0.5;
+          }
+          if (gapless && _hasAdjacentVerticalPixel(x, y, _qr!.moduleCount)) {
+            pixelVTweak = 0.5;
+          }
+          var increasePixelDark = 0.0;
+          while (_hasAdjacentHorizontalPixel(x, y, _qr!.moduleCount)) {
+            increasePixelDark += paintMetrics.pixelSize;
+            x++;
+          }
+
+          final squareRect = Rect.fromLTWH(
+            left,
+            top,
+            paintMetrics.pixelSize + pixelHTweak + increasePixelDark,
+            paintMetrics.pixelSize + pixelVTweak,
+          );
+
           final roundedRect = RRect.fromRectAndRadius(squareRect,
               Radius.circular(paintMetrics.pixelSize + pixelHTweak));
           canvas.drawRRect(roundedRect, paint);
         }
       }
+    } else {
+      for (var x = 0; x < _qr!.moduleCount; x++) {
+        for (var y = 0; y < _qr!.moduleCount; y++) {
+          // draw the finder patterns independently
+          if (_isFinderPatternPosition(x, y)) continue;
+          final paint = _qrImage.isDark(y, x) ? pixelPaint : emptyPixelPaint;
+          if (paint == null) continue;
+          // paint a pixel
+          left = paintMetrics.inset + (x * (paintMetrics.pixelSize + gap));
+          top = paintMetrics.inset + (y * (paintMetrics.pixelSize + gap));
+          var pixelHTweak = 0.0;
+          var pixelVTweak = 0.0;
+          if (gapless && _hasAdjacentHorizontalPixel(x, y, _qr!.moduleCount)) {
+            pixelHTweak = 0.5;
+          }
+          if (gapless && _hasAdjacentVerticalPixel(x, y, _qr!.moduleCount)) {
+            pixelVTweak = 0.5;
+          }
+          final squareRect = Rect.fromLTWH(
+            left,
+            top,
+            paintMetrics.pixelSize + pixelHTweak,
+            paintMetrics.pixelSize + pixelVTweak,
+          );
+          if (dataModuleStyle.dataModuleShape == QrDataModuleShape.square) {
+            canvas.drawRect(squareRect, paint);
+          } else {
+            final roundedRect = RRect.fromRectAndRadius(squareRect,
+                Radius.circular(paintMetrics.pixelSize + pixelHTweak));
+            canvas.drawRRect(roundedRect, paint);
+          }
+        }
+      }
     }
-
     if (embeddedImage != null) {
       final originalSize = Size(
         embeddedImage!.width.toDouble(),
@@ -336,22 +373,45 @@ class QrPainter extends CustomPainter {
     final dotRect = Rect.fromLTWH(offset.dx + metrics.pixelSize + strokeAdjust,
         offset.dy + metrics.pixelSize + strokeAdjust, dotSize, dotSize);
 
-    if (eyeStyle.eyeShape == QrEyeShape.square) {
-      canvas.drawRect(outerRect, outerPaint);
-      canvas.drawRect(innerRect, innerPaint);
-      canvas.drawRect(dotRect, dotPaint);
-    } else {
-      final roundedOuterStrokeRect =
-          RRect.fromRectAndRadius(outerRect, Radius.circular(radius));
-      canvas.drawRRect(roundedOuterStrokeRect, outerPaint);
+    switch (eyeStyle.eyeShape) {
+      case QrEyeShape.square:
+        canvas.drawRect(outerRect, outerPaint);
+        canvas.drawRect(innerRect, innerPaint);
+        canvas.drawRect(dotRect, dotPaint);
+        break;
+      case QrEyeShape.circle:
+        // TODO: Handle this case.
+        final roundedOuterStrokeRect =
+            RRect.fromRectAndRadius(outerRect, Radius.circular(radius));
+        canvas.drawRRect(roundedOuterStrokeRect, outerPaint);
 
-      final roundedInnerStrokeRect =
-          RRect.fromRectAndRadius(outerRect, Radius.circular(innerRadius));
-      canvas.drawRRect(roundedInnerStrokeRect, innerPaint);
+        final roundedInnerStrokeRect =
+            RRect.fromRectAndRadius(outerRect, Radius.circular(innerRadius));
+        canvas.drawRRect(roundedInnerStrokeRect, innerPaint);
 
-      final roundedDotStrokeRect =
-          RRect.fromRectAndRadius(dotRect, Radius.circular(dotSize));
-      canvas.drawRRect(roundedDotStrokeRect, dotPaint);
+        final roundedDotStrokeRect =
+            RRect.fromRectAndRadius(dotRect, Radius.circular(dotSize));
+        canvas.drawRRect(roundedDotStrokeRect, dotPaint);
+        break;
+      case QrEyeShape.tearDrop:
+        // TODO: Handle this case.
+        RRect tearOuterStrokeRect;
+        if (offset.dx == offset.dy) {
+          tearOuterStrokeRect = RRect.fromRectAndCorners(outerRect,
+              topRight: Radius.circular(15), bottomLeft: Radius.circular(15));
+        } else {
+          tearOuterStrokeRect = RRect.fromRectAndCorners(outerRect,
+              topLeft: Radius.circular(15), bottomRight: Radius.circular(15));
+        }
+        canvas.drawRRect(tearOuterStrokeRect, outerPaint);
+        final roundedInnerStrokeRect =
+            RRect.fromRectAndRadius(outerRect, Radius.circular(innerRadius));
+        canvas.drawRRect(roundedInnerStrokeRect, innerPaint);
+
+        final roundedDotStrokeRect =
+            RRect.fromRectAndRadius(dotRect, Radius.circular(dotSize));
+        canvas.drawRRect(roundedDotStrokeRect, dotPaint);
+        break;
     }
   }
 

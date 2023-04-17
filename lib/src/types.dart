@@ -47,6 +47,9 @@ enum QrEyeShape {
 
   /// Use circular eye frame.
   circle,
+
+  /// Use tear drop eye frame.
+  tearDrop,
 }
 
 /// Enumeration representing the shape of Data modules inside QR.
@@ -56,6 +59,9 @@ enum QrDataModuleShape {
 
   /// Use circular dots.
   circle,
+
+  /// Use continues rect with rounded corners.
+  roundedRect,
 }
 
 /// Styling options for finder pattern eye.
