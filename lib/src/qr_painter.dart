@@ -398,10 +398,12 @@ class QrPainter extends CustomPainter {
         RRect tearOuterStrokeRect;
         if (offset.dx == offset.dy) {
           tearOuterStrokeRect = RRect.fromRectAndCorners(outerRect,
-              topRight: Radius.circular(15), bottomLeft: Radius.circular(15));
+              topRight: Radius.circular(eyeStyle.tearDropEyeRadius),
+              bottomLeft: Radius.circular(eyeStyle.tearDropEyeRadius));
         } else {
           tearOuterStrokeRect = RRect.fromRectAndCorners(outerRect,
-              topLeft: Radius.circular(15), bottomRight: Radius.circular(15));
+              topLeft: Radius.circular(eyeStyle.tearDropEyeRadius),
+              bottomRight: Radius.circular(eyeStyle.tearDropEyeRadius));
         }
         canvas.drawRRect(tearOuterStrokeRect, outerPaint);
         final roundedInnerStrokeRect =
